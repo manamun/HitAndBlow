@@ -1,4 +1,7 @@
-type Mode = "normal" | "hard"
+const modes = ["normal", "hard"] as const
+const nextActions = ["play again", "exit"] as const
+type Mode = typeof modes[number]
+type NextActions = typeof nextActions[number]
 
 
 const printLine = (text: string, breakLine: boolean = true) => {
@@ -40,7 +43,7 @@ class HitAndBlow {
     private mode: Mode = "normal"
 
     async setting(){
-        this.mode = await promptSelect<Mode>("モードを入力してください．", ["normal", "hard"])
+        this.mode = await promptSelect<Mode>("モードを入力してください．", modes)
         const answerLength = this.getAnswerLength()
 
         while (this.answer.length < answerLength) {
@@ -96,7 +99,7 @@ class HitAndBlow {
 
     end() {
         printLine(`正解です！ \n試行回数: ${this.tryCount}回`)
-        process.exit()
+        this.reset()
     }
 
     private validate(inputArr: string[]) {
@@ -116,11 +119,44 @@ class HitAndBlow {
                 throw new Error(`${this.mode}は無効なモードです．`)
         }
     }
+
+    private reset() {
+        this.answer = []
+        this.tryCount = 0
+    }
+}
+
+class GameProcedure {
+    private currentGameTitle = "hit and blow"
+    private currentGame = new HitAndBlow()
+
+    public async start() {
+        await this.play()
+    }
+
+    private async play() {
+        printLine(`===\n${this.currentGameTitle}を開始します．\n===`)
+        await this.currentGame.setting()
+        await this.currentGame.play()
+        this.currentGame.end()
+
+        const action = await promptSelect<NextActions>(`ゲームを続けますか？`, nextActions)
+        if (action === 'play again'){
+            await this.play()
+        } else if (action === 'exit'){
+            this.end()
+        } else {
+            const neverValue: never = action
+            throw new Error(`${neverValue} is an invalid action.`)
+        }
+    }
+
+    private end() {
+        printLine(`ゲームを終了しました．`)
+        process.exit()
+    }
 }
 
 ;(async () => {
-    const hitAndBlow = new HitAndBlow()
-    await hitAndBlow.setting()
-    await hitAndBlow.play()
-    hitAndBlow.end()
+    new GameProcedure().start()
 })()

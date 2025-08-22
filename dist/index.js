@@ -35,6 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var modes = ["normal", "hard"];
+var nextActions = ["play again", "exit"];
 var printLine = function (text, breakLine) {
     if (breakLine === void 0) { breakLine = true; }
     process.stdout.write(text + (breakLine ? "\n" : ""));
@@ -68,7 +70,7 @@ var promptSelect = function (text, values) { return __awaiter(void 0, void 0, vo
                 printLine("> ", false);
                 return [4 /*yield*/, readLine()];
             case 1:
-                input = _a.sent();
+                input = (_a.sent());
                 if (values.includes(input)) {
                     return [2 /*return*/, input];
                 }
@@ -93,9 +95,9 @@ var HitAndBlow = /** @class */ (function () {
                 switch (_b.label) {
                     case 0:
                         _a = this;
-                        return [4 /*yield*/, promptSelect("モードを入力してください．", ["normal", "hard"])];
+                        return [4 /*yield*/, promptSelect("モードを入力してください．", modes)];
                     case 1:
-                        _a.mode = (_b.sent());
+                        _a.mode = _b.sent();
                         answerLength = this.getAnswerLength();
                         while (this.answer.length < answerLength) {
                             randNum = Math.floor(Math.random() * this.answerSource.length);
@@ -163,7 +165,7 @@ var HitAndBlow = /** @class */ (function () {
     };
     HitAndBlow.prototype.end = function () {
         printLine("\u6B63\u89E3\u3067\u3059\uFF01 \n\u8A66\u884C\u56DE\u6570: " + this.tryCount + "\u56DE");
-        process.exit();
+        this.reset();
     };
     HitAndBlow.prototype.validate = function (inputArr) {
         var _this = this;
@@ -182,23 +184,75 @@ var HitAndBlow = /** @class */ (function () {
                 throw new Error(this.mode + "\u306F\u7121\u52B9\u306A\u30E2\u30FC\u30C9\u3067\u3059\uFF0E");
         }
     };
+    HitAndBlow.prototype.reset = function () {
+        this.answer = [];
+        this.tryCount = 0;
+    };
     return HitAndBlow;
+}());
+var GameProcedure = /** @class */ (function () {
+    function GameProcedure() {
+        this.currentGameTitle = "hit and blow";
+        this.currentGame = new HitAndBlow();
+    }
+    GameProcedure.prototype.start = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.play()];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    GameProcedure.prototype.play = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var action, neverValue;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        printLine("===\n" + this.currentGameTitle + "\u3092\u958B\u59CB\u3057\u307E\u3059\uFF0E\n===");
+                        return [4 /*yield*/, this.currentGame.setting()];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.currentGame.play()];
+                    case 2:
+                        _a.sent();
+                        this.currentGame.end();
+                        return [4 /*yield*/, promptSelect("\u30B2\u30FC\u30E0\u3092\u7D9A\u3051\u307E\u3059\u304B\uFF1F", nextActions)];
+                    case 3:
+                        action = _a.sent();
+                        if (!(action === 'play again')) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this.play()];
+                    case 4:
+                        _a.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        if (action === 'exit') {
+                            this.end();
+                        }
+                        else {
+                            neverValue = action;
+                            throw new Error(neverValue + " is an invalid action.");
+                        }
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    GameProcedure.prototype.end = function () {
+        printLine("\u30B2\u30FC\u30E0\u3092\u7D42\u4E86\u3057\u307E\u3057\u305F\uFF0E");
+        process.exit();
+    };
+    return GameProcedure;
 }());
 ;
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var hitAndBlow;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                hitAndBlow = new HitAndBlow();
-                return [4 /*yield*/, hitAndBlow.setting()];
-            case 1:
-                _a.sent();
-                return [4 /*yield*/, hitAndBlow.play()];
-            case 2:
-                _a.sent();
-                hitAndBlow.end();
-                return [2 /*return*/];
-        }
+        new GameProcedure().start();
+        return [2 /*return*/];
     });
 }); })();
